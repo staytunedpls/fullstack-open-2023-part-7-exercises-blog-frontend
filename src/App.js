@@ -1,12 +1,24 @@
 import './index.css';
 import PropTypes from 'prop-types';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useReducer } from 'react';
 import Blog from './components/Blog';
 import BlogForm from './components/BlogForm';
 import Togglable from './components/Togglable';
 import blogService from './services/blogs';
 import loginService from './services/login';
+
+const notificationReducer = (state, action) => {
+  switch (action.type) {
+    case 'clear':
+      return { notificationClass: '', message: null };
+    default:
+      return {
+        notificationClass: action.type,
+        message: action.payload.message,
+      };
+  }
+};
 
 function Notification({ message, type }) {
   const notificationClass = `notification ${type}`;
@@ -31,8 +43,10 @@ function App() {
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
 
-  const [notificationMessage, setNotificationMessage] = useState(null);
-  const [notificationType, setNotificationType] = useState('');
+  const [notification, dispatchNotification] = useReducer(notificationReducer, {
+    notificationClass: '',
+    message: null,
+  });
 
   const newBlogRef = useRef();
 
@@ -59,13 +73,17 @@ function App() {
       setUsername('');
       setPassword('');
 
-      setNotificationMessage(`Successful log in by ${loggingUser.username}`);
-      setNotificationType('success');
-      setTimeout(() => setNotificationMessage(null), 5000);
+      dispatchNotification({
+        type: 'success',
+        payload: { message: `Successful log in by ${loggingUser.username}` },
+      });
+      setTimeout(() => dispatchNotification({ type: 'clear' }), 5000);
     } catch (exception) {
-      setNotificationMessage('Invalid credentials');
-      setNotificationType('error');
-      setTimeout(() => setNotificationMessage(null), 5000);
+      dispatchNotification({
+        type: 'error',
+        payload: { message: 'Invalid credentials' },
+      });
+      setTimeout(() => dispatchNotification({ type: 'clear' }), 5000);
     }
   };
 
@@ -76,17 +94,22 @@ function App() {
       const returnedBlog = await blogService.add(newBlog);
       setBlogs(blogs.concat(returnedBlog));
 
-      setNotificationMessage(
-        `a new blog ${returnedBlog.title} by ${newBlog.author} added`
-      );
-      setNotificationType('success');
-      setTimeout(() => setNotificationMessage(null), 5000);
+      dispatchNotification({
+        type: 'success',
+        payload: {
+          message: `a new blog ${returnedBlog.title} by ${newBlog.author} added`,
+        },
+      });
+      setTimeout(() => dispatchNotification({ type: 'clear' }), 5000);
     } catch (error) {
-      setNotificationMessage(
-        `Could not add new blog, got error: ${error.message}`
-      );
-      setNotificationType('error');
-      setTimeout(() => setNotificationMessage(null), 5000);
+      dispatchNotification({
+        type: 'error',
+        payload: {
+          message: 'kek',
+          // message: `Could not add new blog, got error: ${error.message}`,
+        },
+      });
+      setTimeout(() => dispatchNotification({ type: 'clear' }), 5000);
     }
   };
 
@@ -167,14 +190,20 @@ function App() {
   if (user === null) {
     return (
       <div>
-        <Notification message={notificationMessage} type={notificationType} />
+        <Notification
+          message={notification.message}
+          type={notification.notificationClass}
+        />
         {loginForm()}
       </div>
     );
   }
   return (
     <div>
-      <Notification message={notificationMessage} type={notificationType} />
+      <Notification
+        message={notification.message}
+        type={notification.notificationClass}
+      />
       {blogList()}
       <Togglable buttonLabel="new blog" ref={newBlogRef}>
         <BlogForm createBlog={addBlog} />
