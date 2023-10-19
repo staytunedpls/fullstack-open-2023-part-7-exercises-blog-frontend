@@ -2,6 +2,7 @@ import './index.css';
 import PropTypes from 'prop-types';
 
 import React, { useState, useEffect, useRef, useReducer } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Blog from './components/Blog';
 import BlogForm from './components/BlogForm';
 import Togglable from './components/Togglable';
@@ -38,17 +39,9 @@ Notification.propTypes = {
 };
 
 function App() {
-  const [blogs, setBlogs] = useState([]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
-
-  const [notification, dispatchNotification] = useReducer(notificationReducer, {
-    notificationClass: '',
-    message: null,
-  });
-
-  const newBlogRef = useRef();
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedUser');
@@ -57,8 +50,32 @@ function App() {
       setUser(loggedUser);
       blogService.setToken(loggedUser.token);
     }
-    blogService.getAll().then(returnedBlogs => setBlogs(returnedBlogs));
   }, []);
+
+  const [notification, dispatchNotification] = useReducer(notificationReducer, {
+    notificationClass: '',
+    message: null,
+  });
+
+  const queryClient = useQueryClient();
+  const newBlogMutation = useMutation({
+    mutationFn: newBlog => blogService.add(newBlog),
+    onSuccess: () => queryClient.invalidateQueries('blogs'),
+  });
+
+  const newBlogRef = useRef();
+
+  const queryResult = useQuery({
+    queryKey: ['blogs'],
+    queryFn: () => blogService.getAll(),
+  });
+  if (queryResult.isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (queryResult.isError) {
+    return <div>ERROR!</div>;
+  }
+  const blogs = queryResult.data;
 
   const handleLogin = async event => {
     event.preventDefault();
@@ -87,30 +104,26 @@ function App() {
     }
   };
 
-  const addBlog = async newBlog => {
+  const addBlog = newBlog => {
     newBlogRef.current.toggleVisibility();
+    newBlogMutation.mutate(newBlog);
+    dispatchNotification({
+      type: 'success',
+      payload: {
+        message: `a new blog ${newBlog.title} by ${newBlog.author} added`,
+      },
+    });
+    setTimeout(() => dispatchNotification({ type: 'clear' }), 5000);
 
-    try {
-      const returnedBlog = await blogService.add(newBlog);
-      setBlogs(blogs.concat(returnedBlog));
-
-      dispatchNotification({
-        type: 'success',
-        payload: {
-          message: `a new blog ${returnedBlog.title} by ${newBlog.author} added`,
-        },
-      });
-      setTimeout(() => dispatchNotification({ type: 'clear' }), 5000);
-    } catch (error) {
-      dispatchNotification({
-        type: 'error',
-        payload: {
-          message: 'kek',
-          // message: `Could not add new blog, got error: ${error.message}`,
-        },
-      });
-      setTimeout(() => dispatchNotification({ type: 'clear' }), 5000);
-    }
+    // } catch (error) {
+    //   dispatchNotification({
+    //     type: 'error',
+    //     payload: {
+    //       message: `Could not add new blog, got error: ${error.message}`,
+    //     },
+    //   });
+    //   setTimeout(() => dispatchNotification({ type: 'clear' }), 5000);
+    // }
   };
 
   const logout = () => {
@@ -151,7 +164,7 @@ function App() {
     // eslint-disable-next-line no-alert
     if (window.confirm(`Remove blog "${blog.title}" by ${blog.author}?`)) {
       await blogService.deleteEntry(blog.id);
-      setBlogs(blogs.filter(blogElement => blogElement.id !== blog.id));
+      // setBlogs(blogs.filter(blogElement => blogElement.id !== blog.id));
     }
   };
 
@@ -159,11 +172,12 @@ function App() {
     const blog = blogs.find(b => b.id === id);
     const newBlog = { ...blog, likes: blog.likes + 1 };
     const returnedBlog = await blogService.update(blog.id, newBlog);
-    setBlogs(
-      blogs.map(blogElement =>
-        blogElement.id !== id ? blogElement : returnedBlog
-      )
-    );
+    console.log(returnedBlog);
+    // // setBlogs(
+    // //   blogs.map(blogElement =>
+    // //     blogElement.id !== id ? blogElement : returnedBlog
+    //  // )
+    // );
   };
 
   const blogList = () => (
