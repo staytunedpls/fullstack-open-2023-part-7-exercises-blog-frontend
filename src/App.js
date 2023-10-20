@@ -60,6 +60,23 @@ function App() {
   const queryClient = useQueryClient();
   const newBlogMutation = useMutation({
     mutationFn: newBlog => blogService.add(newBlog),
+    onSuccess: newBlog => {
+      const blogs = queryClient.getQueryData(['blogs']);
+      queryClient.setQueryData(['blogs'], blogs.concat(newBlog));
+    },
+  });
+  const updateBlogMutation = useMutation({
+    mutationFn: ({ id, updatedBlog }) => blogService.update(id, updatedBlog),
+    onSuccess: updatedBlog => {
+      const blogs = queryClient.getQueryData(['blogs']);
+      queryClient.setQueryData(
+        ['blogs'],
+        blogs.map(blog => (blog.id === updatedBlog.id ? updatedBlog : blog))
+      );
+    },
+  });
+  const removeBlogMutation = useMutation({
+    mutationFn: id => blogService.deleteEntry(id),
     onSuccess: () => queryClient.invalidateQueries('blogs'),
   });
 
@@ -163,21 +180,14 @@ function App() {
   const removeBlog = async blog => {
     // eslint-disable-next-line no-alert
     if (window.confirm(`Remove blog "${blog.title}" by ${blog.author}?`)) {
-      await blogService.deleteEntry(blog.id);
-      // setBlogs(blogs.filter(blogElement => blogElement.id !== blog.id));
+      removeBlogMutation.mutate(blog.id);
     }
   };
 
-  const likeBlog = async id => {
+  const likeBlog = id => {
     const blog = blogs.find(b => b.id === id);
-    const newBlog = { ...blog, likes: blog.likes + 1 };
-    const returnedBlog = await blogService.update(blog.id, newBlog);
-    console.log(returnedBlog);
-    // // setBlogs(
-    // //   blogs.map(blogElement =>
-    // //     blogElement.id !== id ? blogElement : returnedBlog
-    //  // )
-    // );
+    const updatedBlog = { ...blog, likes: blog.likes + 1 };
+    updateBlogMutation.mutate({ id, updatedBlog });
   };
 
   const blogList = () => (
