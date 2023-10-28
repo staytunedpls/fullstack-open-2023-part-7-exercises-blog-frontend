@@ -1,5 +1,4 @@
 import './index.css';
-import PropTypes from 'prop-types';
 
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,46 +7,9 @@ import BlogForm from './components/BlogForm';
 import Togglable from './components/Togglable';
 import blogService from './services/blogs';
 import loginService from './services/login';
-
-const notificationReducer = (state, action) => {
-  switch (action.type) {
-    case 'clear':
-      return { notificationClass: '', message: null };
-    default:
-      return {
-        notificationClass: action.type,
-        message: action.payload.message,
-      };
-  }
-};
-
-function Notification({ message, type }) {
-  const notificationClass = `notification ${type}`;
-  if (message === null) {
-    return null;
-  }
-  return <div className={notificationClass}>{message}</div>;
-}
-
-Notification.defaultProps = {
-  message: null,
-};
-
-Notification.propTypes = {
-  message: PropTypes.string,
-  type: PropTypes.string.isRequired,
-};
-
-const loginReducer = (state, action) => {
-  switch (action.type) {
-    case 'login':
-      return action.payload.user;
-    case 'logout':
-      return null;
-    default:
-      return null;
-  }
-};
+import notificationReducer from './reducers/notificationReducer';
+import loginReducer from './reducers/loginReducer';
+import Notification from './components/Notification';
 
 function App() {
   const [username, setUsername] = useState('');
