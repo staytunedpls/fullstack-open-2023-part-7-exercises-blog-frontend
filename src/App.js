@@ -38,16 +38,27 @@ Notification.propTypes = {
   type: PropTypes.string.isRequired,
 };
 
+const loginReducer = (state, action) => {
+  switch (action.type) {
+    case 'login':
+      return action.payload.user;
+    case 'logout':
+      return null;
+    default:
+      return null;
+  }
+};
+
 function App() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [user, setUser] = useState(null);
+  const [user, userDispatch] = useReducer(loginReducer, null);
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedUser');
     if (loggedUserJSON) {
       const loggedUser = JSON.parse(loggedUserJSON);
-      setUser(loggedUser);
+      userDispatch({ type: 'login', payload: { user: loggedUser } });
       blogService.setToken(loggedUser.token);
     }
   }, []);
@@ -102,7 +113,7 @@ function App() {
         password,
       });
       window.localStorage.setItem('loggedUser', JSON.stringify(loggingUser));
-      setUser(loggingUser);
+      userDispatch({ type: 'login', payload: { user: loggingUser } });
       blogService.setToken(loggingUser.token);
       setUsername('');
       setPassword('');
@@ -144,7 +155,7 @@ function App() {
   };
 
   const logout = () => {
-    setUser(null);
+    userDispatch({ type: 'logout' });
     window.localStorage.removeItem('loggedUser');
   };
 
