@@ -2,6 +2,7 @@ import './index.css';
 
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Routes, Route } from 'react-router-dom';
 import Blog from './components/Blog';
 import BlogForm from './components/BlogForm';
 import Togglable from './components/Togglable';
@@ -10,6 +11,7 @@ import loginService from './services/login';
 import notificationReducer from './reducers/notificationReducer';
 import loginReducer from './reducers/loginReducer';
 import Notification from './components/Notification';
+import UserList from './components/UserList';
 
 function App() {
   const [username, setUsername] = useState('');
@@ -201,10 +203,20 @@ function App() {
         message={notification.message}
         type={notification.notificationClass}
       />
-      {blogList()}
-      <Togglable buttonLabel="new blog" ref={newBlogRef}>
-        <BlogForm createBlog={addBlog} />
-      </Togglable>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              {blogList()}
+              <Togglable buttonLabel="new blog" ref={newBlogRef}>
+                <BlogForm createBlog={addBlog} />
+              </Togglable>
+            </>
+          }
+        />
+        <Route path="/users" element={<UserList />} />
+      </Routes>
     </div>
   );
 }
