@@ -12,7 +12,8 @@ import notificationReducer from './reducers/notificationReducer';
 import loginReducer from './reducers/loginReducer';
 import Notification from './components/Notification';
 import UserList from './components/UserList';
-import User from './components/User';
+import UserPage from './components/UserPage';
+import BlogPage from './components/BlogPage';
 
 function App() {
   const [username, setUsername] = useState('');
@@ -168,13 +169,6 @@ function App() {
 
   const blogList = () => (
     <div>
-      <h2>Blogs</h2>
-      <p>
-        {user.username} logged in
-        <button type="button" onClick={logout}>
-          logout
-        </button>
-      </p>
       {blogs.map(blog => (
         <Blog
           key={blog.id}
@@ -200,6 +194,13 @@ function App() {
   }
   return (
     <div>
+      <h2>Blogs</h2>
+      <p>
+        {user.username} logged in
+        <button type="button" onClick={logout}>
+          logout
+        </button>
+      </p>
       <Notification
         message={notification.message}
         type={notification.notificationClass}
@@ -217,7 +218,11 @@ function App() {
           }
         />
         <Route path="/users" element={<UserList />} />
-        <Route path="/users/:id" element={<User />} />
+        <Route path="/users/:id" element={<UserPage />} />
+        <Route
+          path="/blogs/:id"
+          element={<BlogPage blogs={blogs} likeBlog={likeBlog} />}
+        />
       </Routes>
     </div>
   );

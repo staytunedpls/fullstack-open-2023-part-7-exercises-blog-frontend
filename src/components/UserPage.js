@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import userService from '../services/users';
 
-function User() {
+function UserPage() {
   const queryResult = useQuery({
     queryKey: ['users'],
     queryFn: () => userService.getAll(),
@@ -29,4 +29,4 @@ function User() {
   );
 }
 
-export default User;
+export default UserPage;
