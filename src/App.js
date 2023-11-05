@@ -12,6 +12,7 @@ import notificationReducer from './reducers/notificationReducer';
 import loginReducer from './reducers/loginReducer';
 import Notification from './components/Notification';
 import UserList from './components/UserList';
+import User from './components/User';
 
 function App() {
   const [username, setUsername] = useState('');
@@ -216,6 +217,7 @@ function App() {
           }
         />
         <Route path="/users" element={<UserList />} />
+        <Route path="/users/:id" element={<User />} />
       </Routes>
     </div>
   );
