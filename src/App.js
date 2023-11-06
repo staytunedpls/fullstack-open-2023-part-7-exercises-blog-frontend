@@ -2,7 +2,8 @@ import './index.css';
 
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
+import { Nav } from 'react-bootstrap';
 import Blog from './components/Blog';
 import BlogForm from './components/BlogForm';
 import Togglable from './components/Togglable';
@@ -194,17 +195,25 @@ function App() {
   }
   return (
     <div>
-      <h2>Blogs</h2>
-      <p>
-        {user.username} logged in
-        <button type="button" onClick={logout}>
-          logout
-        </button>
-      </p>
       <Notification
         message={notification.message}
         type={notification.notificationClass}
       />
+      <Nav className="me-auto">
+        <Nav.Link href="#" as="span">
+          <Link to="/">blogs</Link>
+        </Nav.Link>
+        <Nav.Link href="#" as="span">
+          <Link to="/users">users</Link>
+        </Nav.Link>
+        <Nav.Link href="#" as="span">
+          {user.username} logged in &nbsp;
+          <button type="button" onClick={logout}>
+            logout
+          </button>
+        </Nav.Link>
+      </Nav>
+      <h2>Blogs</h2>
       <Routes>
         <Route
           path="/"
