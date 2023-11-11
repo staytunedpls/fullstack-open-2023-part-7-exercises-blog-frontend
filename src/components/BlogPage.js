@@ -17,6 +17,14 @@ function BlogPage({ blogs, likeBlog }) {
       </button>
       <br />
       added by {blog.user.username}
+      <br />
+      <br />
+      <h3>Comments</h3>
+      <ul>
+        {blog.comments.map(comment => (
+          <li>{comment}</li>
+        ))}
+      </ul>
     </div>
   );
 }
